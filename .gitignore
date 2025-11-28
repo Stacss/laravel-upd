@@ -1,0 +1,26 @@
+# Composer
+/vendor/
+/composer.lock
+
+# PHPUnit cache
+.phpunit.result.cache
+
+# Laravel package specific
+/build/
+/coverage/
+
+# Editor junk
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Node
+node_modules/
+npm-debug.log
+
+# Temporary
+*.cache
