@@ -3,6 +3,7 @@
 namespace Stacss\LaravelUpd\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Stacss\LaravelUpd\ReconciliationRenderer;
 use Stacss\LaravelUpd\UpdRenderer;
 
 class UpdServiceProvider extends ServiceProvider
@@ -13,6 +14,9 @@ class UpdServiceProvider extends ServiceProvider
 
         $this->app->singleton(UpdRenderer::class, function () {
             return new UpdRenderer();
+        });
+        $this->app->singleton(ReconciliationRenderer::class, function () {
+            return new ReconciliationRenderer();
         });
     }
 
