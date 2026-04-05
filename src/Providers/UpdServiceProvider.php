@@ -3,7 +3,9 @@
 namespace Stacss\LaravelUpd\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Stacss\LaravelUpd\InvoiceRenderer;
 use Stacss\LaravelUpd\ReconciliationRenderer;
+use Stacss\LaravelUpd\Support\MoneyToWordsRu;
 use Stacss\LaravelUpd\UpdRenderer;
 
 class UpdServiceProvider extends ServiceProvider
@@ -17,6 +19,15 @@ class UpdServiceProvider extends ServiceProvider
         });
         $this->app->singleton(ReconciliationRenderer::class, function () {
             return new ReconciliationRenderer();
+        });
+        $this->app->singleton(MoneyToWordsRu::class, function () {
+            return new MoneyToWordsRu();
+        });
+        $this->app->singleton(InvoiceRenderer::class, function ($app) {
+            return new InvoiceRenderer(
+                calculator: $app->make(\Stacss\LaravelUpd\VatCalculator::class),
+                moneyToWords: $app->make(MoneyToWordsRu::class),
+            );
         });
     }
 
