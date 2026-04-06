@@ -1,41 +1,42 @@
 # Laravel-UPD
 
-**Laravel-UPD** — пакет для генерации PDF документов:
+`stacss/laravel-upd` — Laravel package для генерации PDF-документов:
 
-- УПД (универсальный передаточный документ, Постановление №1137)
-- Акта сверки взаиморасчётов за период
-- Счета на оплату для РФ
+- УПД
+- акта сверки
+- счета на оплату
 
-Пакет предоставляет:
+Пакет использует `barryvdh/laravel-dompdf`, считает НДС через встроенный `VatCalculator` и отдает готовый `Barryvdh\DomPDF\PDF`.
 
-- готовый шаблон УПД (ландшафт)
-- шаблон акта сверки (портрет, A4)
-- шаблон счета на оплату (портрет, A4)
-- расчёт НДС (net/gross)
-- сумма прописью на русском языке
-- рендер PDF через `barryvdh/laravel-dompdf`
-- поддержку Laravel 10, 11 и 12
-- тесты (PHPUnit + Testbench)
-- единый стиль кода (php-cs-fixer)
+## Совместимость
 
----
+Поддерживаются:
+
+- PHP `8.1+`
+- Laravel `10`
+- Laravel `11`
+- Laravel `12`
+
+Пакет не заявляет поддержку всех версий Laravel. По текущим constraints в [composer.json](/home/stacss/dev/laravel-upd/composer.json) поддерживаются только `illuminate/support ^10|^11|^12`.
 
 ## Установка
+
+Установка в обычный Laravel-проект:
 
 ```bash
 composer require stacss/laravel-upd
 ```
 
-Публикация конфигурации и шаблонов:
+Публикация конфига и шаблонов:
 
 ```bash
 php artisan vendor:publish --tag=upd-config
 php artisan vendor:publish --tag=upd-views
 ```
 
----
+## Быстрый старт
 
-## Пример использования: УПД
+### УПД
 
 ```php
 use Stacss\LaravelUpd\UpdRenderer;
@@ -45,25 +46,25 @@ $renderer = app(UpdRenderer::class);
 $pdf = $renderer->pdf([
     'document' => [
         'number' => '123',
-        'date'   => now(),
+        'date' => now(),
         'status' => 1,
     ],
     'seller' => config('upd.seller'),
     'buyer' => [
-        'name'    => 'ООО Покупатель',
-        'inn'     => '1234567890',
-        'kpp'     => '123456789',
+        'name' => 'ООО Покупатель',
+        'inn' => '1234567890',
+        'kpp' => '123456789',
         'address' => 'г. Москва',
     ],
     'items' => [
         [
-            'name'       => 'Тестовый товар',
-            'code'       => 'TST-001',
-            'unit'       => 'шт',
-            'unit_code'  => '796',
-            'quantity'   => 2,
-            'price'      => 100,
-            'vat_rate'   => 20,
+            'name' => 'Тестовый товар',
+            'code' => 'TST-001',
+            'unit' => 'шт',
+            'unit_code' => '796',
+            'quantity' => 2,
+            'price' => 100,
+            'vat_rate' => 20,
             'price_type' => 'net',
         ],
     ],
@@ -72,9 +73,7 @@ $pdf = $renderer->pdf([
 $pdf->save(storage_path('upd.pdf'));
 ```
 
----
-
-## Пример использования: Акт сверки
+### Акт сверки
 
 ```php
 use Stacss\LaravelUpd\ReconciliationRenderer;
@@ -82,59 +81,42 @@ use Stacss\LaravelUpd\ReconciliationRenderer;
 $renderer = app(ReconciliationRenderer::class);
 
 $pdf = $renderer->pdf([
-    'contract' => [
-        'number' => 'CTR-12/34',
-        'date'   => now()->subYear(),
-    ],
+    'act_date' => now(),
     'period' => [
         'from' => now()->startOfMonth(),
-        'to'   => now()->endOfMonth(),
+        'to' => now()->endOfMonth(),
     ],
     'left' => [
-        'name' => config('upd.seller.name'),
-        'inn'  => config('upd.seller.inn'),
-        'kpp'  => config('upd.seller.kpp'),
-        'rs'   => '40702810900000000001',
-        'bank' => 'ПАО "Тестбанк"',
-        'bik'  => '044525225',
+        'full_name' => 'ООО Ромашка',
+        'short_name' => 'ООО Ромашка',
+        'director_post' => 'генерального директора',
+        'director_full' => 'Иванова Ивана Ивановича',
+        'director_short' => 'Иванов И. И.',
+        'director_sign_note' => 'Иванов ' . now()->format('d.m.Y'),
+        'basis' => 'Устава',
     ],
     'right' => [
-        'name' => 'ООО Поставщик',
-        'inn'  => '9988776655',
-        'kpp'  => '112233445',
-        'rs'   => '40702810900000000002',
-        'bank' => 'ПАО "Поставщикбанк"',
-        'bik'  => '044525111',
+        'full_name' => 'ООО Покупатель',
+        'short_name' => 'ООО Покупатель',
+        'director_post' => 'генерального директора',
+        'director_full' => 'Петрова Петра Петровича',
+        'director_short' => 'Петров П. П.',
+        'director_sign_note' => 'Петров ' . now()->format('d.m.Y'),
+        'basis' => 'Устава',
     ],
     'opening' => [
-        'date'    => now()->startOfMonth()->subDay(),
-        'debit'   => 0,
-        'credit'  => 0,
+        'date' => now()->startOfMonth(),
         'balance' => 0,
     ],
     'closing' => [
-        'date'    => now()->endOfMonth(),
-        'debit'   => 10000,
-        'credit'  => 0,
+        'date' => now()->endOfMonth(),
         'balance' => 10000,
     ],
-    'totals' => [
-        'debit'   => 10000,
-        'credit'  => 0,
-        'balance' => 10000,
-    ],
-    'summary' => [
-        'debt_left'  => '10 000,00 руб.',
-        'debt_right' => '0,00 руб.',
-    ],
-    'rows' => [
+    'operations' => [
         [
-            'date'        => now()->format('d.m.Y'),
-            'document'    => 'Поступление №1',
-            'description' => 'Поставка товара',
-            'debit'       => '10 000,00',
-            'credit'      => '0,00',
-            'balance'     => '10 000,00',
+            'title' => 'Накладная №1',
+            'debit' => 10000,
+            'credit' => 0,
         ],
     ],
 ]);
@@ -142,9 +124,7 @@ $pdf = $renderer->pdf([
 $pdf->save(storage_path('reconciliation.pdf'));
 ```
 
----
-
-## Пример использования: Счет на оплату
+### Счет на оплату
 
 ```php
 use Stacss\LaravelUpd\InvoiceRenderer;
@@ -155,19 +135,19 @@ $pdf = $renderer->pdf([
     'document' => [
         'number' => '15',
         'date' => now(),
-        'due_date' => now()->addDays(5), // optional
-        'base' => 'Оплата по счету за товары', // optional
-        'contract' => 'Договор №5 от 01.01.2026', // optional
+        'due_date' => now()->addDays(5),
+        'base' => 'Оплата по счету за товары',
+        'contract' => 'Договор №5 от 01.01.2026',
     ],
     'seller' => [
         'name' => 'ООО Ромашка',
-        'short_name' => 'ООО Ромашка', // optional
+        'short_name' => 'ООО Ромашка',
         'inn' => '7700000000',
         'kpp' => '770001001',
-        'ogrn' => '1027700000000', // optional
+        'ogrn' => '1027700000000',
         'address' => 'г. Москва, ул. Пример, д. 1',
-        'phone' => '+7 (999) 123-45-67', // optional
-        'email' => 'info@example.ru', // optional
+        'phone' => '+7 (999) 123-45-67',
+        'email' => 'info@example.ru',
     ],
     'seller_bank' => [
         'bank_name' => 'ПАО Сбербанк',
@@ -176,22 +156,19 @@ $pdf = $renderer->pdf([
         'corr_account' => '30101810400000000225',
     ],
     'buyer' => [
-        'name' => 'ООО Покупатель', // optional
-        'short_name' => 'ООО Покупатель', // optional
-        'inn' => '7800000000', // optional
-        'kpp' => '780001001', // optional
-        'ogrn' => '1027800000000', // optional
-        'address' => 'г. Санкт-Петербург, ул. Тестовая, д. 5', // optional
-        'phone' => '', // optional
-        'email' => '', // optional
+        'name' => 'ООО Покупатель',
+        'short_name' => 'ООО Покупатель',
+        'inn' => '7800000000',
+        'kpp' => '780001001',
+        'address' => 'г. Санкт-Петербург, ул. Тестовая, д. 5',
     ],
     'items' => [
         [
             'name' => 'Товар 1',
-            'code' => 'ABC-001', // optional
-            'brand' => 'ACME', // optional
+            'brand' => 'ACME',
+            'code' => 'ABC-001',
             'unit' => 'шт',
-            'unit_code' => '796', // optional
+            'unit_code' => '796',
             'quantity' => 2,
             'price' => 1000,
             'vat_rate' => 20,
@@ -199,30 +176,18 @@ $pdf = $renderer->pdf([
         ],
     ],
     'payment' => [
-        'purpose' => 'Оплата счета №15 от 05.04.2026', // optional
-        'vat_text' => 'В том числе НДС 20%', // optional
-        'comment' => 'Без доверенности. Оплата означает согласие с условиями поставки.', // optional
+        'comment' => 'Без доверенности. Оплата означает согласие с условиями поставки.',
     ],
     'signatures' => [
-        'director' => 'Иванов И.И.', // optional
-        'accountant' => 'Петров П.П.', // optional
+        'director' => 'Иванов И.И.',
+        'accountant' => 'Петров П.П.',
     ],
 ]);
 
 $pdf->save(storage_path('invoice.pdf'));
 ```
 
-Что формируется в счете:
-
-- номер и дата счета
-- реквизиты продавца
-- банковские реквизиты продавца
-- реквизиты покупателя, если переданы
-- таблица позиций
-- итоги без НДС, НДС и с НДС
-- сумма прописью
-- назначение платежа
-- блок подписей
+## Формат данных для счета
 
 Обязательные поля:
 
@@ -243,19 +208,28 @@ $pdf->save(storage_path('invoice.pdf'));
 - `document.due_date`
 - `document.base`
 - `document.contract`
-- `seller.short_name`, `seller.ogrn`, `seller.phone`, `seller.email`
+- `seller.short_name`
+- `seller.ogrn`
+- `seller.phone`
+- `seller.email`
 - `seller_bank.corr_account`
-- `items[*].code`, `items[*].brand`, `items[*].unit_code`
-- `payment.purpose`, `payment.vat_text`, `payment.comment`
-- `signatures.director`, `signatures.accountant`
+- `items[*].brand`
+- `items[*].code`
+- `items[*].unit_code`
+- `payment.purpose`
+- `payment.vat_text`
+- `payment.comment`
+- `signatures.director`
+- `signatures.accountant`
 
 Примечания:
 
-- `buyer` можно не передавать целиком, счет все равно будет сгенерирован
-- `payment.purpose` и `payment.vat_text` могут быть не заданы, пакет сформирует безопасные значения автоматически
-- расчет сумм по позициям выполняется через `VatCalculator`, как и в УПД
-
----
+- если `buyer` не передан, счет все равно будет сгенерирован
+- если `payment.purpose` не передан, пакет сформирует строку автоматически
+- если `payment.vat_text` не передан, пакет сформирует его из рассчитанного НДС
+- колонки `Бренд` и `Код` выводятся только если хотя бы у одной позиции есть непустые значения
+- `brand` нормализуется из `brand`, `brand_name`, `manufacturer`, `vendor`
+- `code` нормализуется из `code`, `sku`, `article`
 
 ## Конфигурация
 
@@ -264,11 +238,11 @@ $pdf->save(storage_path('invoice.pdf'));
 ```php
 return [
     'seller' => [
-        'name'    => 'АВТОиностранец',
-        'inn'     => '',
-        'kpp'     => '',
+        'name' => 'АВТОиностранец',
+        'inn' => '',
+        'kpp' => '',
         'address' => '',
-        'phone'   => '',
+        'phone' => '',
     ],
 
     'default_vat_rate' => 20.0,
@@ -290,19 +264,27 @@ return [
         'contract' => '',
         'comment' => '',
     ],
-
 ];
 ```
 
----
+## Если опубликованы шаблоны
+
+Если вы уже публиковали views пакета в проекте-потребителе, Laravel будет использовать их вместо шаблонов из `vendor`.
+
+После обновления шаблонов пакета перепубликуйте их:
+
+```bash
+php artisan vendor:publish --tag=upd-views --force
+php artisan view:clear
+```
+
+Если вы меняли опубликованные шаблоны вручную, перепубликация с `--force` их перезапишет.
 
 ## Тестирование
 
 ```bash
 composer test
 ```
-
----
 
 ## Стиль кода
 
@@ -318,8 +300,6 @@ composer cs
 composer cs-fix
 ```
 
----
-
 ## Лицензия
 
-MIT License.
+MIT
