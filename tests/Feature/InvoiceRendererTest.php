@@ -51,7 +51,10 @@ class InvoiceRendererTest extends TestCase
     {
         $renderer = $this->app->make(InvoiceRenderer::class);
 
-        $pdf = $renderer->pdf($this->invoiceData());
+        $data = $this->invoiceData();
+        $data['items'][0]['brand'] = 'Acme';
+
+        $pdf = $renderer->pdf($data);
 
         $this->assertInstanceOf(DomPdf::class, $pdf);
 
@@ -104,6 +107,60 @@ class InvoiceRendererTest extends TestCase
         $this->assertSame('Оплата счета №15 от 05.04.2026', $prepared['payment']['purpose']);
     }
 
+    public function test_invoice_keeps_item_code_and_brand_when_passed(): void
+    {
+        $renderer = $this->makeInspectableRenderer();
+
+        $data                      = $this->invoiceData();
+        $data['items'][0]['brand'] = 'Acme';
+
+        $prepared = $renderer->exposePrepareData($data);
+
+        $this->assertSame('ABC-001', $prepared['items'][0]['code']);
+        $this->assertSame('Acme', $prepared['items'][0]['brand']);
+    }
+
+    public function test_invoice_normalizes_brand_and_code_aliases(): void
+    {
+        $renderer = $this->makeInspectableRenderer();
+
+        $data = $this->invoiceData();
+        unset($data['items'][0]['code'], $data['items'][0]['brand']);
+        $data['items'][0]['article'] = 'ART-777';
+        $data['items'][0]['manufacturer'] = 'Acme';
+
+        $prepared = $renderer->exposePrepareData($data);
+
+        $this->assertSame('ART-777', $prepared['items'][0]['code']);
+        $this->assertSame('Acme', $prepared['items'][0]['brand']);
+    }
+
+    public function test_invoice_hides_optional_brand_and_code_columns_when_data_is_missing(): void
+    {
+        $renderer = $this->makeInspectableRenderer();
+
+        $data                      = $this->invoiceData();
+        $data['items'][0]['code']  = '';
+        $data['items'][0]['brand'] = '';
+
+        $html = $this->app['view']
+            ->make('laravel-upd::invoice', $renderer->exposePrepareData($data))
+            ->render();
+
+        $this->assertStringNotContainsString('>Бренд<', $html);
+        $this->assertStringNotContainsString('>Код<', $html);
+
+        $data['items'][0]['code']  = 'ABC-001';
+        $data['items'][0]['brand'] = 'Acme';
+
+        $html = $this->app['view']
+            ->make('laravel-upd::invoice', $renderer->exposePrepareData($data))
+            ->render();
+
+        $this->assertStringContainsString('>Бренд<', $html);
+        $this->assertStringContainsString('>Код<', $html);
+    }
+
     public function test_money_to_words_ru_formats_rubles_and_kopecks(): void
     {
         $converter = new MoneyToWordsRu();
@@ -138,6 +195,7 @@ class InvoiceRendererTest extends TestCase
                 [
                     'name'       => 'Товар 1',
                     'code'       => 'ABC-001',
+                    'brand'      => 'Acme',
                     'unit'       => 'шт',
                     'unit_code'  => '796',
                     'quantity'   => 2,

@@ -15,8 +15,8 @@ class InvoiceRenderer
         protected ?VatCalculator $calculator = null,
         protected ?MoneyToWordsRu $moneyToWords = null,
     ) {
-        $this->calculator       ??= new VatCalculator();
-        $this->moneyToWords     ??= new MoneyToWordsRu();
+        $this->calculator   ??= new VatCalculator();
+        $this->moneyToWords ??= new MoneyToWordsRu();
     }
 
     public function pdf(array $data): DomPdf
@@ -53,7 +53,7 @@ class InvoiceRenderer
             (array) ($data['signatures'] ?? [])
         );
 
-        $items         = (array) ($data['items'] ?? []);
+        $items         = $this->normalizeItems((array) ($data['items'] ?? []));
         $calculated    = $this->calculator->calculate($items);
         $preparedItems = $calculated['items']  ?? [];
         $totals        = $calculated['totals'] ?? ['net' => 0.0, 'vat' => 0.0, 'gross' => 0.0];
@@ -140,6 +140,47 @@ class InvoiceRenderer
         }
 
         return 'В том числе НДС: ' . $this->formatMoney($vat) . ' руб.';
+    }
+
+    protected function normalizeItems(array $items): array
+    {
+        $normalized = [];
+
+        foreach ($items as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $item['brand'] = $this->firstFilledValue($item, [
+                'brand',
+                'brand_name',
+                'manufacturer',
+                'vendor',
+            ]);
+
+            $item['code'] = $this->firstFilledValue($item, [
+                'code',
+                'sku',
+                'article',
+            ]);
+
+            $normalized[] = $item;
+        }
+
+        return $normalized;
+    }
+
+    protected function firstFilledValue(array $source, array $keys): string
+    {
+        foreach ($keys as $key) {
+            $value = trim((string) ($source[$key] ?? ''));
+
+            if ($value !== '') {
+                return $value;
+            }
+        }
+
+        return '';
     }
 
     protected function formatDate(mixed $value): string

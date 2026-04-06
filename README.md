@@ -189,6 +189,7 @@ $pdf = $renderer->pdf([
         [
             'name' => 'Товар 1',
             'code' => 'ABC-001', // optional
+            'brand' => 'ACME', // optional
             'unit' => 'шт',
             'unit_code' => '796', // optional
             'quantity' => 2,
@@ -244,6 +245,7 @@ $pdf->save(storage_path('invoice.pdf'));
 - `document.contract`
 - `seller.short_name`, `seller.ogrn`, `seller.phone`, `seller.email`
 - `seller_bank.corr_account`
+- `items[*].code`, `items[*].brand`, `items[*].unit_code`
 - `payment.purpose`, `payment.vat_text`, `payment.comment`
 - `signatures.director`, `signatures.accountant`
 

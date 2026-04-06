@@ -23,6 +23,10 @@
         $buyer['phone'] ?? '',
         $buyer['email'] ?? '',
     ]);
+
+    $hasBrandColumn = collect($items)->contains(static fn ($item) => !empty($item['brand']));
+    $hasCodeColumn = collect($items)->contains(static fn ($item) => !empty($item['code']));
+    $emptyItemsColspan = 7 + ($hasBrandColumn ? 1 : 0) + ($hasCodeColumn ? 1 : 0);
 @endphp
 <!DOCTYPE html>
 <html lang="ru">
@@ -226,13 +230,18 @@
         <thead>
         <tr>
             <th style="width: 5%;">№</th>
-            <th style="width: 32%;">Наименование</th>
-            <th style="width: 11%;">Код</th>
+            <th style="width: {{ $hasBrandColumn || $hasCodeColumn ? '27%' : '40%' }};">Наименование</th>
+            @if($hasBrandColumn)
+                <th style="width: 12%;">Бренд</th>
+            @endif
+            @if($hasCodeColumn)
+                <th style="width: 11%;">Код</th>
+            @endif
             <th style="width: 8%;">Ед.</th>
             <th style="width: 8%;">Кол-во</th>
             <th style="width: 12%;">Цена</th>
             <th style="width: 9%;">НДС</th>
-            <th style="width: 15%;">Сумма</th>
+            <th style="width: {{ $hasBrandColumn || $hasCodeColumn ? '8%' : '18%' }};">Сумма</th>
         </tr>
         </thead>
         <tbody>
@@ -245,7 +254,12 @@
                         <div class="small">ОКЕИ: {{ $item['unit_code'] }}</div>
                     @endif
                 </td>
-                <td class="text-center">{{ $item['code'] ?? '' }}</td>
+                @if($hasBrandColumn)
+                    <td class="text-center">{{ $item['brand'] ?? '' }}</td>
+                @endif
+                @if($hasCodeColumn)
+                    <td class="text-center">{{ $item['code'] ?? '' }}</td>
+                @endif
                 <td class="text-center">{{ $item['unit'] ?? '' }}</td>
                 <td class="text-right">{{ rtrim(rtrim(number_format((float) ($item['quantity'] ?? 0), 3, '.', ' '), '0'), '.') }}</td>
                 <td class="text-right">{{ $formatMoney($item['price'] ?? 0) }}</td>
@@ -260,7 +274,7 @@
             </tr>
         @empty
             <tr>
-                <td colspan="8" class="text-center">Нет позиций</td>
+                <td colspan="{{ $emptyItemsColspan }}" class="text-center">Нет позиций</td>
             </tr>
         @endforelse
         </tbody>
