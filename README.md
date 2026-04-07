@@ -187,6 +187,16 @@ $pdf = $renderer->pdf([
 $pdf->save(storage_path('invoice.pdf'));
 ```
 
+## Примеры документов
+
+### Счет на оплату
+
+![Счет на оплату](docs/images/invoice.png)
+
+### УПД
+
+![УПД](docs/images/upd.png)
+
 ## Формат данных для счета
 
 Обязательные поля:
