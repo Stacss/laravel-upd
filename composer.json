@@ -1,6 +1,6 @@
 {
   "name": "stacss/laravel-upd",
-  "description": "Универсальный пакет для печати УПД (универсальный передаточный документ) в Laravel",
+  "description": "Laravel package for generating PDF documents: UPD, reconciliation statements and Russian invoices",
   "type": "library",
   "license": "MIT",
   "authors": [
@@ -43,14 +43,17 @@
   },
   "keywords": [
     "upd",
+    "invoice",
+    "reconciliation",
+    "russian invoice",
+    "universal transfer document",
+    "laravel pdf",
+    "laravel dompdf",
+    "invoice pdf",
+    "reconciliation act",
     "универсальный передаточный документ",
-    "упд",
-    "упд ларавел",
-    "laravel upd",
-    "upd laravel",
-    "упд pdf",
-    "счёт-фактура",
-    "акт",
+    "счет на оплату",
+    "акт сверки",
     "pdf generator",
     "dompdf"
   ],
